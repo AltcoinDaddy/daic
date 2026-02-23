@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-white;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply backdrop-blur-md bg-zinc-900/70 border border-white/10 shadow-xl;
+  }
+
+  .text-neon-cyan {
+    @apply text-cyan-400;
+    filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.5));
+  }
+
+  .text-neon-purple {
+    @apply text-purple-500;
+    filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5));
+  }
+
+  /* Fallback if bg-noise is still used somewhere */
+  .bg-noise {
+    @apply bg-zinc-950;
+  }
+
+  .bg-neon-cyan {
+    @apply bg-cyan-400;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+  }
+}
+
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
