@@ -47,15 +47,23 @@ export default function DatasetsPage() {
         setSubmitting(true);
 
         try {
-            // Step 1: Upload metadata to IPFS
-            setStep("Uploading to IPFS...");
+            // Step 1: Upload to IPFS + Filecoin via Lighthouse
+            setStep("Uploading to IPFS + Filecoin...");
             let cid: string;
+            let filecoinDeal = false;
             if (file) {
-                cid = await IPFSService.uploadFile(file);
+                const result = await IPFSService.uploadFile(file);
+                cid = result.cid;
+                filecoinDeal = result.filecoinDeal;
             } else {
-                cid = await IPFSService.uploadJSON({ title, description, timestamp: Date.now() });
+                const result = await IPFSService.uploadJSON({ title, description, timestamp: Date.now() });
+                cid = result.cid;
+                filecoinDeal = result.filecoinDeal;
             }
             setLastCid(cid);
+            if (filecoinDeal) {
+                setStep("✅ Stored on IPFS + Filecoin! Generating proof...");
+            }
 
             // Step 2: Generate integrity proof
             setStep("Generating integrity proof...");
@@ -121,7 +129,7 @@ export default function DatasetsPage() {
                         Dataset Provenance Registry
                     </h1>
                     <p className="text-zinc-400 max-w-2xl mx-auto mb-8">
-                        Register datasets with cryptographic integrity proofs. Every upload is content-addressed via IPFS and recorded on-chain.
+                        Register datasets with cryptographic integrity proofs. Every upload is content-addressed via IPFS, stored permanently on Filecoin, and recorded on-chain.
                     </p>
                     {accountId && (
                         <button
