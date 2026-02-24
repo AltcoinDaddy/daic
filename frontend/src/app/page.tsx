@@ -39,13 +39,6 @@ export default function Home() {
         </div>
 
         <div className="container relative z-10 mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-neon-cyan/20 bg-neon-cyan/5 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-neon-cyan mb-10 animate-fade-in-up shadow-[0_0_20px_rgba(0,243,255,0.15)]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-cyan opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-cyan"></span>
-            </span>
-            Live on NEAR Testnet
-          </div>
 
           <h1 className="mx-auto max-w-5xl text-6xl font-bold tracking-tight sm:text-7xl lg:text-9xl mb-8">
             <span className="block bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40 pb-4">Decentralized</span>
@@ -121,7 +114,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 text-center text-sm text-zinc-600 bg-black/40">
-        <p>© 2026 DAIC. Built for PL_Genesis Hackathon.</p>
+        <p>© 2026 DAIC. All rights reserved.</p>
       </footer>
     </div>
   );
