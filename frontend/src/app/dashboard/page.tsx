@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Search, FileText, Activity, Server, Activity as ActivityIcon, Database } from "lucide-react";
+import { Plus, Search, FileText, Activity, Server, Database } from "lucide-react";
 import { DIDRegister } from "@/components/DIDRegister";
+import { Navbar } from "@/components/Navbar";
 import { useEffect, useState } from "react";
 import { nearService, Proposal, Dataset } from "@/services/near";
 import { useWallet } from "@/providers/WalletProvider";
@@ -56,35 +57,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white">
-            {/* Dashboard Nav - Glassmorphism */}
-            <nav className="glass-panel sticky top-0 z-40 border-b-0">
-                <div className="container mx-auto flex h-20 items-center justify-between px-6">
-                    <div className="flex items-center gap-3">
-                        <div className="relative h-10 w-10 flex items-center justify-center">
-                            <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-neon-purple to-pink-600 blur opacity-40 animate-pulse" />
-                            <div className="relative h-full w-full rounded-xl bg-gradient-to-tr from-purple-500/20 to-pink-600/20 border border-white/10 flex items-center justify-center">
-                                <ActivityIcon className="h-6 w-6 text-neon-purple" />
-                            </div>
-                        </div>
-                        <div className="flex flex-col">
-                            <Link href="/" className="text-xl font-bold tracking-tight text-white hover:text-neon-cyan transition-colors">DAIC</Link>
-                            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Dashboard Console</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        {accountId && (
-                            <div className="hidden md:flex flex-col items-end mr-2">
-                                <span className="text-xs font-bold text-zinc-300">{accountId}</span>
-                                <span className="text-[10px] text-green-500 flex items-center gap-1">
-                                    <span className="block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                                    Connected
-                                </span>
-                            </div>
-                        )}
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-neon-cyan to-blue-600 border-2 border-white/10 shadow-[0_0_15px_rgba(0,243,255,0.3)]" />
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="container mx-auto p-6 md:p-8">
                 <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

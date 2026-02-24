@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Users, Lock, Send, Shield, Zap, Hash, Radio } from "lucide-react";
+import Link from "next/link";
+import { Users, Lock, Send, Shield, Zap, Hash, Radio, ArrowLeft } from "lucide-react";
 import { ChatService, ChatMessage } from "@/services/chat";
 import { useWallet } from "@/providers/WalletProvider";
 
@@ -87,6 +88,9 @@ export default function Chat() {
             {/* Sidebar */}
             <aside className="glass-panel relative flex w-80 flex-col border-r-0 border-r-white/5 bg-black/40">
                 <div className="flex h-16 items-center gap-3 px-6 border-b border-white/5 bg-white/5">
+                    <Link href="/" className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-all">
+                        <ArrowLeft className="h-4 w-4" />
+                    </Link>
                     <Shield className="h-5 w-5 text-neon-cyan drop-shadow-[0_0_8px_rgba(0,243,255,0.5)]" />
                     <h2 className="font-bold tracking-wide uppercase text-xs text-zinc-300">Secure Channel</h2>
                 </div>

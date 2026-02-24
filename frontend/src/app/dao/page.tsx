@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDAO } from "@/hooks/useDAO";
 import { useWallet } from "@/providers/WalletProvider";
 import { ProposalCard } from "@/components/ProposalCard";
-import { WalletSelector } from "@/components/WalletSelector";
+import { Navbar } from "@/components/Navbar";
 import { Plus, X, Loader2 } from "lucide-react";
 
 export default function VotingPage() {
@@ -40,12 +40,7 @@ export default function VotingPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <nav className="border-b border-white/10 bg-zinc-900/50 backdrop-blur-xl">
-                <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <div className="text-xl font-bold tracking-tight text-white">DAIC DAO</div>
-                    <WalletSelector />
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="container mx-auto p-6 max-w-5xl">
                 <header className="mb-12 text-center">

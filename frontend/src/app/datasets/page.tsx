@@ -5,7 +5,7 @@ import { useWallet } from "@/providers/WalletProvider";
 import { nearService, Dataset } from "@/services/near";
 import { IPFSService } from "@/services/ipfs";
 import { ZKService, IntegrityProof } from "@/services/zk";
-import { WalletSelector } from "@/components/WalletSelector";
+import { Navbar } from "@/components/Navbar";
 import {
     Database, Upload, Shield, ExternalLink, Clock,
     FileText, Plus, X, Loader2, CheckCircle, Link as LinkIcon
@@ -111,16 +111,7 @@ export default function DatasetsPage() {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white">
-            {/* Nav */}
-            <nav className="border-b border-white/10 bg-zinc-900/50 backdrop-blur-xl">
-                <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <div className="flex items-center gap-3">
-                        <Database className="h-5 w-5 text-emerald-400" />
-                        <span className="text-xl font-bold">DAIC Datasets</span>
-                    </div>
-                    <WalletSelector />
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="container mx-auto p-6 max-w-5xl">
                 {/* Header */}
