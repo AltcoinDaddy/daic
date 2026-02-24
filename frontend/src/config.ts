@@ -1,4 +1,5 @@
 const NETWORK_ID = "testnet";
+const MASTER_ACCOUNT = "daic-dev-1770225642.testnet";
 
 export const NEAR_CONFIG = {
     networkId: NETWORK_ID,
@@ -6,7 +7,7 @@ export const NEAR_CONFIG = {
     walletUrl: "https://testnet.mynearwallet.com",
     helperUrl: "https://helper.testnet.near.org",
     explorerUrl: "https://testnet.nearblocks.io",
-    contractName: "dao.testnet", // Placeholder, needs to be updated after deployment
-    didRegistryContract: "did.testnet", // Placeholder
-    provenanceContract: "provenance.testnet", // Placeholder
+    daoContract: `dao.${MASTER_ACCOUNT}`,
+    didRegistryContract: `did.${MASTER_ACCOUNT}`,
+    provenanceContract: `provenance.${MASTER_ACCOUNT}`,
 };

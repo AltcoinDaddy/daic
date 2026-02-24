@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 import { WalletProvider } from "@/providers/WalletProvider";
+import { ToastProvider } from "@/components/Toast";
 
 export default function RootLayout({
   children,
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${outfit.className} bg-zinc-950 text-white antialiased`}>
-        <WalletProvider>{children}</WalletProvider>
+        <WalletProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </WalletProvider>
       </body>
     </html>
   );

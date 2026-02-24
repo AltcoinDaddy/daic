@@ -1,0 +1,14 @@
+/Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/deps/libserde-f17d6bfc4f306236.rmeta: /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/build/serde-650fa2cf81c95276/out/private.rs
+
+/Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/deps/libserde-f17d6bfc4f306236.rlib: /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/build/serde-650fa2cf81c95276/out/private.rs
+
+/Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/deps/serde-f17d6bfc4f306236.d: /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/build/serde-650fa2cf81c95276/out/private.rs
+
+/Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/daddy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/build/serde-650fa2cf81c95276/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/daddy/Desktop/DAIC/daic/contracts/target/wasm32-unknown-unknown/release/build/serde-650fa2cf81c95276/out

@@ -126,7 +126,6 @@ dependencies = [
 name = "daic_did_registry"
 version = "0.1.0"
 dependencies = [
- "borsh",
  "near-sdk",
  "serde",
 ]

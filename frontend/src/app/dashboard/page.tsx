@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Search, FileText, Activity, Server, Activity as ActivityIcon } from "lucide-react";
+import { Plus, Search, FileText, Activity, Server, Activity as ActivityIcon, Database } from "lucide-react";
 import { DIDRegister } from "@/components/DIDRegister";
 import { useEffect, useState } from "react";
 import { nearService, Proposal, Dataset } from "@/services/near";
+import { useWallet } from "@/providers/WalletProvider";
 
 export default function Dashboard() {
+    const { accountId } = useWallet();
     const [proposals, setProposals] = useState<Proposal[]>([]);
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -32,13 +35,24 @@ export default function Dashboard() {
 
     // Calculate Stats
     const totalFundingYocto = proposals.reduce((acc, p) => acc + p.contributions, 0);
-    // Rough approximate for display (10^24 yocto = 1 NEAR)
-    // Javascript doesn't handle 10^24 well with standard number, so we treat it as big float approx
-    const totalFundingNEAR = (totalFundingYocto / 1e24).toLocaleString(undefined, { maximumFractionDigits: 1 });
+    const totalFundingNEAR = (totalFundingYocto / 1e24).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    const activeProposals = proposals.filter(p => p.votes >= 0).length; // All proposals are active for now
 
-    // Dataset size sum (parsing "45 GB", "1.2 TB")
-    // For now just hardcode or approximate count as a proxy for "pinned"
-    const totalDatasetsSize = datasets.length > 0 ? "89.2 TB" : "0 TB";
+    const handleNewProposal = async () => {
+        setCreating(true);
+        try {
+            await nearService.createProposal(
+                "New Research Project",
+                "A new research proposal submitted from the dashboard."
+            );
+            const updated = await nearService.getProposals();
+            setProposals(updated);
+        } catch (err) {
+            console.error("Failed to create proposal:", err);
+        } finally {
+            setCreating(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white">
@@ -58,13 +72,15 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="hidden md:flex flex-col items-end mr-2">
-                            <span className="text-xs font-bold text-zinc-300">near.testnet</span>
-                            <span className="text-[10px] text-green-500 flex items-center gap-1">
-                                <span className="block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                                Connected
-                            </span>
-                        </div>
+                        {accountId && (
+                            <div className="hidden md:flex flex-col items-end mr-2">
+                                <span className="text-xs font-bold text-zinc-300">{accountId}</span>
+                                <span className="text-[10px] text-green-500 flex items-center gap-1">
+                                    <span className="block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    Connected
+                                </span>
+                            </div>
+                        )}
                         <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-neon-cyan to-blue-600 border-2 border-white/10 shadow-[0_0_15px_rgba(0,243,255,0.3)]" />
                     </div>
                 </div>
@@ -79,16 +95,12 @@ export default function Dashboard() {
                     <div className="flex flex-wrap items-center gap-4">
                         <DIDRegister />
                         <button
-                            onClick={() => {
-                                // Simple mock creation for now
-                                nearService.createProposal("New Project " + Date.now(), "Auto-generated project")
-                                    .then(() => nearService.getProposals())
-                                    .then(setProposals);
-                            }}
-                            className="flex items-center gap-2 rounded-xl bg-neon-cyan px-5 py-2.5 text-sm font-bold text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,243,255,0.5)] transition-all"
+                            onClick={handleNewProposal}
+                            disabled={creating || !accountId}
+                            className="flex items-center gap-2 rounded-xl bg-neon-cyan px-5 py-2.5 text-sm font-bold text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,243,255,0.5)] transition-all disabled:opacity-50"
                         >
                             <Plus className="h-4 w-4" />
-                            New Proposal
+                            {creating ? "Creating..." : "New Proposal"}
                         </button>
                     </div>
                 </header>
@@ -96,9 +108,9 @@ export default function Dashboard() {
                 {/* Stats Grid */}
                 <div className="grid gap-6 sm:grid-cols-3 mb-10">
                     {[
-                        { label: "Active Proposals", value: proposals.filter(p => p.status === 'Active').length.toString(), icon: FileText, color: "text-neon-cyan" },
+                        { label: "Total Proposals", value: proposals.length.toString(), icon: FileText, color: "text-neon-cyan" },
                         { label: "Total Funding", value: `${totalFundingNEAR} NEAR`, icon: Activity, color: "text-neon-purple" },
-                        { label: "Pinned Datasets", value: totalDatasetsSize, icon: Server, color: "text-emerald-400" },
+                        { label: "Datasets Registered", value: datasets.length.toString(), icon: Database, color: "text-emerald-400" },
                     ].map((stat, i) => (
                         <div key={i} className="glass-panel rounded-2xl p-6 relative overflow-hidden group hover:border-white/20 transition-colors">
                             <div className="absolute right-0 top-0 h-24 w-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full" />
@@ -127,9 +139,15 @@ export default function Dashboard() {
                     </div>
                     <div className="divide-y divide-white/5">
                         {loading ? (
-                            <div className="p-8 text-center text-zinc-500">Loading proposals...</div>
+                            <div className="p-8 text-center text-zinc-500">
+                                <div className="animate-spin inline-block h-6 w-6 border-2 border-zinc-500 border-t-neon-cyan rounded-full mb-2" />
+                                <div>Loading from blockchain...</div>
+                            </div>
                         ) : proposals.length === 0 ? (
-                            <div className="p-8 text-center text-zinc-500">No proposals found.</div>
+                            <div className="p-8 text-center text-zinc-500">
+                                <div className="mb-2 text-2xl">📭</div>
+                                No proposals found on-chain. Create the first one!
+                            </div>
                         ) : (
                             proposals.map((project) => (
                                 <div key={project.id} className="flex items-center justify-between px-6 py-5 hover:bg-white/5 transition-colors group cursor-pointer">
@@ -140,15 +158,12 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-6">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${project.status === 'Passed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                project.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                    'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-                                            }`}>
-                                            {project.status === 'Active' && <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-400 mr-1.5 animate-pulse" />}
-                                            {project.status}
+                                        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                            {project.votes} votes
                                         </span>
                                         <span className="text-sm font-mono text-zinc-300 w-24 text-right">
-                                            {(project.contributions / 1e24).toFixed(1)} NEAR
+                                            {(project.contributions / 1e24).toFixed(2)} Ⓝ
                                         </span>
                                     </div>
                                 </div>

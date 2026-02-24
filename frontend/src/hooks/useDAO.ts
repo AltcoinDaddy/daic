@@ -1,62 +1,58 @@
-import { useState, useCallback } from "react";
-import { useWallet } from "@/providers/WalletProvider";
-import { NEAR_CONFIG } from "@/config";
-
-export interface Proposal {
-    id: number;
-    proposer: string;
-    title: string;
-    description: string;
-    votes: number;
-    contributions: string;
-}
+import { useState, useCallback, useEffect } from "react";
+import { nearService, Proposal } from "@/services/near";
 
 export function useDAO() {
-    const { selector } = useWallet();
     const [proposals, setProposals] = useState<Proposal[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchProposals = useCallback(async () => {
-        if (!selector) return;
         setLoading(true);
+        setError(null);
         try {
-            const wallet = await selector.wallet();
-            // For MVP, we might need a view method call helper
-            // Since 'view' calls don't strictly require a wallet connection in near-api-js but wallet-selector helps
-            // We will assume using a provider mechanism or standard near-api-js JsonRpcProvider
-
-            // Mocking for now as we don't have the full view logic set up without 'near-api-js' providers directly imported
-            // In a real app: const res = await provider.query(...)
+            const data = await nearService.getProposals();
+            setProposals(data);
         } catch (e) {
-            console.error(e);
+            console.error("Failed to fetch proposals:", e);
+            setError("Failed to load proposals from the blockchain.");
         } finally {
             setLoading(false);
         }
-    }, [selector]);
+    }, []);
+
+    // Auto-fetch on mount
+    useEffect(() => {
+        fetchProposals();
+    }, [fetchProposals]);
 
     const createProposal = async (title: string, description: string) => {
-        if (!selector) return;
-        const wallet = await selector.wallet();
-        await wallet.signAndSendTransaction({
-            receiverId: NEAR_CONFIG.contractName,
-            actions: [
-                {
-                    type: "FunctionCall",
-                    params: {
-                        methodName: "create_proposal",
-                        args: { title, description },
-                        gas: "30000000000000",
-                        deposit: "0",
-                    },
-                },
-            ],
-        });
+        try {
+            await nearService.createProposal(title, description);
+            // Refresh after creation
+            await fetchProposals();
+        } catch (e) {
+            console.error("Failed to create proposal:", e);
+            throw e;
+        }
+    };
+
+    const vote = async (proposalId: number, amountNear: string) => {
+        try {
+            await nearService.vote(proposalId, amountNear);
+            // Refresh after voting
+            await fetchProposals();
+        } catch (e) {
+            console.error("Failed to vote:", e);
+            throw e;
+        }
     };
 
     return {
         proposals,
         loading,
+        error,
         fetchProposals,
         createProposal,
+        vote,
     };
 }

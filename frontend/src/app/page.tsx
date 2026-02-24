@@ -21,6 +21,8 @@ export default function Home() {
             <Link href="#features" className="hover:text-neon-cyan transition-colors">Features</Link>
             <Link href="#how-it-works" className="hover:text-neon-cyan transition-colors">How it works</Link>
             <Link href="/dashboard" className="text-white hover:text-neon-cyan transition-colors">Dashboard</Link>
+            <Link href="/datasets" className="text-white hover:text-neon-cyan transition-colors">Datasets</Link>
+            <Link href="/dao" className="text-white hover:text-neon-cyan transition-colors">DAO</Link>
           </div>
           <div className="flex items-center gap-4">
             <WalletSelector />

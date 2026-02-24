@@ -1,4 +1,11 @@
-import { WalletSelector } from "@near-wallet-selector/core";
+import { JsonRpcProvider } from "near-api-js";
+import { actionCreators } from "@near-js/transactions";
+import { NEAR_CONFIG } from "@/config";
+import type { WalletSelector } from "@near-wallet-selector/core";
+
+const { functionCall } = actionCreators;
+
+// --- Types matching on-chain structs ---
 
 export interface Proposal {
     id: number;
@@ -6,9 +13,9 @@ export interface Proposal {
     title: string;
     description: string;
     votes: number;
-    contributions: number; // in yoctoNEAR
-    status: 'Active' | 'Passed' | 'Rejected'; // Synthetic status for UI
-    endDate: number; // Synthetic timestamp
+    contributions: number; // yoctoNEAR
+    voter_count: number;
+    status: "Active" | "Funded" | "Completed";
 }
 
 export interface Dataset {
@@ -16,149 +23,218 @@ export interface Dataset {
     owner: string;
     title: string;
     description: string;
-    size: string;
-    price: number;
+    lineage: string[];
+    timestamp: number;
 }
 
-// Mock Data
-const MOCK_PROPOSALS: Proposal[] = [
-    {
-        id: 1,
-        proposer: "research-lab.testnet",
-        title: "Cancer Research Dataset Acquisition",
-        description: "Proposal to acquire a comprehensive dataset of histopathology images for cancer detection model training.",
-        votes: 45,
-        contributions: 5500000000000000000000000, // 5.5 NEAR
-        status: 'Active',
-        endDate: Date.now() + 86400000 * 2
-    },
-    {
-        id: 2,
-        proposer: "algo-dev.testnet",
-        title: "Federated Learning Infrastructure",
-        description: "Funding for setting up the initial nodes for our decentralized federated learning network.",
-        votes: 120,
-        contributions: 12500000000000000000000000, // 12.5 NEAR
-        status: 'Passed',
-        endDate: Date.now() - 86400000
-    },
-    {
-        id: 3,
-        proposer: "data-dao.testnet",
-        title: "Urban Traffic Pattern Analysis",
-        description: "community driven project to analyze traffic patterns in major cities using privacy-preserving techniques.",
-        votes: 12,
-        contributions: 1500000000000000000000000, // 1.5 NEAR
-        status: 'Active',
-        endDate: Date.now() + 86400000 * 5
-    }
-];
+export interface DIDDocument {
+    id: string;
+    verification_method: string;
+    controller: string;
+    created: number;
+}
 
-const MOCK_DATASETS: Dataset[] = [
-    {
-        id: "QmHash1",
-        owner: "hospital-a.testnet",
-        title: "Chest X-Ray Collection 2024",
-        description: "5000 anonymized chest x-ray images annotated with common pathologies.",
-        size: "45 GB",
-        price: 0
-    },
-    {
-        id: "QmHash2",
-        owner: "satellite-img.testnet",
-        title: "Global Vegetation Index Q3",
-        description: "High resolution satellite imagery processing results for vegetation analysis.",
-        size: "1.2 TB",
-        price: 5
-    }
-];
+// --- Service ---
 
 export class NearService {
+    private provider: JsonRpcProvider;
     private walletSelector: WalletSelector | null = null;
-    private networkId = "testnet";
 
-    constructor(walletSelector?: WalletSelector) {
-        if (walletSelector) {
-            this.walletSelector = walletSelector;
-        }
+    constructor() {
+        this.provider = new JsonRpcProvider({ url: NEAR_CONFIG.nodeUrl });
     }
 
-    // --- DAO / Proposals ---
+    setWallet(selector: WalletSelector) {
+        this.walletSelector = selector;
+    }
+
+    // ─── View Call Helper ──────────────────────────────────────
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private async viewMethod(
+        contractId: string,
+        methodName: string,
+        args: Record<string, unknown> = {}
+    ): Promise<any> {
+        const result = await this.provider.callFunction({
+            contractId,
+            method: methodName,
+            args,
+            blockQuery: { finality: "final" },
+        });
+        return result;
+    }
+
+    // ─── Change Call Helper ────────────────────────────────────
+
+    private async callMethod(
+        contractId: string,
+        methodName: string,
+        args: Record<string, unknown> = {},
+        deposit: bigint = 0n,
+        gas: bigint = 30_000_000_000_000n
+    ) {
+        if (!this.walletSelector) {
+            throw new Error("Wallet not connected");
+        }
+        const wallet = await this.walletSelector.wallet();
+        const action = functionCall(methodName, args, gas, deposit);
+        return wallet.signAndSendTransaction({
+            receiverId: contractId,
+            actions: [action],
+        });
+    }
+
+    // ─── DAO / Proposals ───────────────────────────────────────
 
     async getProposals(): Promise<Proposal[]> {
-        console.log("Mock NearService: Fetching proposals...");
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return [...MOCK_PROPOSALS];
-    }
-
-    async createProposal(title: string, description: string): Promise<number> {
-        console.log(`Mock NearService: Creating proposal: ${title}`);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        const newId = MOCK_PROPOSALS.length + 1;
-        const newProposal: Proposal = {
-            id: newId,
-            proposer: "current-user.testnet", // Placeholder
-            title,
-            description,
-            votes: 0,
-            contributions: 0,
-            status: 'Active',
-            endDate: Date.now() + 86400000 * 7
-        };
-        MOCK_PROPOSALS.unshift(newProposal);
-        return newId;
-    }
-
-    async vote(proposalId: number, amount: number): Promise<void> {
-        console.log(`Mock NearService: Voting on ${proposalId} with ${amount} NEAR`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        const proposal = MOCK_PROPOSALS.find(p => p.id === proposalId);
-        if (proposal) {
-            proposal.votes += 1;
-            // Mock conversion, assuming amount is full NEAR
-            proposal.contributions += amount * 1000000000000000000000000;
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.daoContract,
+                "get_all_proposals"
+            );
+            return (result as Proposal[]) ?? [];
+        } catch (err) {
+            console.error("Failed to fetch proposals:", err);
+            return [];
         }
     }
 
-    // --- Provenance / Datasets ---
+    async getProposal(id: number): Promise<Proposal | null> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.daoContract,
+                "get_proposal",
+                { proposal_id: id }
+            );
+            return (result as Proposal) ?? null;
+        } catch (err) {
+            console.error("Failed to fetch proposal:", err);
+            return null;
+        }
+    }
+
+    async getProposalCount(): Promise<number> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.daoContract,
+                "get_proposal_count"
+            );
+            return (result as number) ?? 0;
+        } catch (err) {
+            console.error("Failed to fetch proposal count:", err);
+            return 0;
+        }
+    }
+
+    async createProposal(title: string, description: string) {
+        return this.callMethod(
+            NEAR_CONFIG.daoContract,
+            "create_proposal",
+            { title, description }
+        );
+    }
+
+    async vote(proposalId: number, amountNear: string) {
+        // Convert NEAR to yoctoNEAR bigint (1 NEAR = 10^24 yoctoNEAR)
+        const yocto = BigInt(Math.round(parseFloat(amountNear) * 1e6)) * BigInt(1e18);
+        return this.callMethod(
+            NEAR_CONFIG.daoContract,
+            "vote",
+            { proposal_id: proposalId },
+            yocto
+        );
+    }
+
+    async getMatchedFunding(proposalId: number): Promise<number> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.daoContract,
+                "get_matched_funding",
+                { proposal_id: proposalId }
+            );
+            return (result as number) ?? 0;
+        } catch {
+            return 0;
+        }
+    }
+
+    async getMatchingPool(): Promise<number> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.daoContract,
+                "get_matching_pool"
+            );
+            return (result as number) ?? 0;
+        } catch {
+            return 0;
+        }
+    }
+
+    // ─── Provenance / Datasets ─────────────────────────────────
 
     async getDatasets(): Promise<Dataset[]> {
-        console.log("Mock NearService: Fetching datasets...");
-        await new Promise(resolve => setTimeout(resolve, 600));
-        return [...MOCK_DATASETS];
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.provenanceContract,
+                "get_all_datasets"
+            );
+            return (result as Dataset[]) ?? [];
+        } catch (err) {
+            console.error("Failed to fetch datasets:", err);
+            return [];
+        }
     }
 
-    async registerDataset(title: string, description: string, size: string): Promise<string> {
-        console.log(`Mock NearService: Registering dataset: ${title}`);
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
-        const newId = `QmMake${Date.now()}`;
-        MOCK_DATASETS.push({
-            id: newId,
-            owner: "current-user.testnet",
-            title,
-            description,
-            size,
-            price: 0
-        });
-        return newId;
+    async getDataset(id: string): Promise<Dataset | null> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.provenanceContract,
+                "get_dataset",
+                { id }
+            );
+            return (result as Dataset) ?? null;
+        } catch (err) {
+            console.error("Failed to fetch dataset:", err);
+            return null;
+        }
     }
 
-    // --- DID ---
-
-    async registerDID(accountId: string, publicKey: string): Promise<string> {
-        console.log(`Mock NearService: Registering DID for ${accountId} with key ${publicKey}`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return `did:near:${accountId}`;
+    async registerDataset(
+        id: string,
+        title: string,
+        description: string,
+        lineage: string[] = []
+    ) {
+        return this.callMethod(
+            NEAR_CONFIG.provenanceContract,
+            "register_dataset",
+            { id, title, description, lineage }
+        );
     }
 
-    async getDID(accountId: string): Promise<string | null> {
-        console.log(`Mock NearService: Resolving DID for ${accountId}`);
-        // Simulate that everyone has a DID for now
-        return `did:near:${accountId}`;
+    // ─── DID Registry ──────────────────────────────────────────
+
+    async registerDID(verificationMethod: string) {
+        return this.callMethod(
+            NEAR_CONFIG.didRegistryContract,
+            "register_did",
+            { verification_method: verificationMethod }
+        );
+    }
+
+    async getDID(accountId: string): Promise<DIDDocument | null> {
+        try {
+            const result = await this.viewMethod(
+                NEAR_CONFIG.didRegistryContract,
+                "resolve_did",
+                { account_id: accountId }
+            );
+            return (result as DIDDocument) ?? null;
+        } catch (err) {
+            console.error("Failed to resolve DID:", err);
+            return null;
+        }
     }
 }
 

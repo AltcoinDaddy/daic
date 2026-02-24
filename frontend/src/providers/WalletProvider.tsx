@@ -2,18 +2,20 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { setupWalletSelector } from "@near-wallet-selector/core";
+import type { WalletSelector as WalletSelectorType } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
 import { setupModal } from "@near-wallet-selector/modal-ui";
+import type { WalletSelectorModal } from "@near-wallet-selector/modal-ui";
 import { NEAR_CONFIG } from "@/config";
+import { nearService } from "@/services/near";
 import "@near-wallet-selector/modal-ui/styles.css";
 
 interface WalletContextType {
-    selector: any;
-    modal: any;
+    selector: WalletSelectorType | null;
+    modal: WalletSelectorModal | null;
     accountId: string | null;
     signOut: () => Promise<void>;
     signIn: () => void;
-    debugSetAccountId?: (id: string | null) => void;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -27,8 +29,8 @@ export const useWallet = () => {
 };
 
 export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
-    const [selector, setSelector] = useState<any>(null);
-    const [modal, setModal] = useState<any>(null);
+    const [selector, setSelector] = useState<WalletSelectorType | null>(null);
+    const [modal, setModal] = useState<WalletSelectorModal | null>(null);
     const [accountId, setAccountId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -38,16 +40,19 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
                 modules: [setupMyNearWallet()],
             });
             const _modal = setupModal(_selector, {
-                contractId: NEAR_CONFIG.contractName,
+                contractId: NEAR_CONFIG.daoContract,
             });
+
+            // Inject wallet into the NEAR service so it can make change calls
+            nearService.setWallet(_selector);
 
             const state = _selector.store.getState();
             if (state.accounts.length > 0) {
                 setAccountId(state.accounts[0].accountId);
             }
 
-            // Subscribe to changes
-            _selector.store.observable.subscribe((state) => {
+            // Subscribe to account changes
+            _selector.store.observable.subscribe((state: { accounts: { accountId: string }[] }) => {
                 if (state.accounts.length > 0) {
                     setAccountId(state.accounts[0].accountId);
                 } else {
@@ -72,7 +77,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <WalletContext.Provider value={{ selector, modal, accountId, signIn, signOut, debugSetAccountId: setAccountId }}>
+        <WalletContext.Provider value={{ selector, modal, accountId, signIn, signOut }}>
             {children}
         </WalletContext.Provider>
     );

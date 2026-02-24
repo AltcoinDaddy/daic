@@ -17,29 +17,26 @@ create_account() {
   echo "Processing $ACCOUNT_ID..."
   if ! $NEAR_BIN view-state $ACCOUNT_ID network-config testnet > /dev/null 2>&1; then
       echo "Creating account $ACCOUNT_ID..."
-      $NEAR_BIN create-account $ACCOUNT_ID --masterAccount $MASTER_ACC --initialBalance 5
+      $NEAR_BIN create-account $ACCOUNT_ID --masterAccount $MASTER_ACC --initialBalance 1.5
   else
       echo "Account $ACCOUNT_ID already exists."
   fi
 }
 
-# Create sub-accounts
-create_account "dao.$MASTER_ACC"
+# Create sub-accounts (dao already created)
 create_account "provenance.$MASTER_ACC"
 create_account "did.$MASTER_ACC"
 
 # Deploy DAO
 echo "Deploying DAO..."
-$NEAR_BIN deploy $MASTER_ACC --wasmFile out/daic_dao.wasm --initFunction new --initArgs '{}'
-# Ideal logic:
-$NEAR_BIN deploy "dao.$MASTER_ACC" --wasmFile out/daic_dao.wasm --initFunction new --initArgs '{}'
+$NEAR_BIN deploy "dao.$MASTER_ACC" --wasmFile out/daic_dao.wasm --initFunction new --initArgs '{}' 2>&1 || echo "DAO deploy: may need re-init"
 
 # Deploy Provenance
 echo "Deploying Provenance..."
-$NEAR_BIN deploy "provenance.$MASTER_ACC" --wasmFile out/daic_provenance.wasm --initFunction new --initArgs '{}'
+$NEAR_BIN deploy "provenance.$MASTER_ACC" --wasmFile out/daic_provenance.wasm --initFunction new --initArgs '{}' 2>&1 || echo "Provenance deploy: may need re-init"
 
 # Deploy DID Registry
 echo "Deploying DID Registry..."
-$NEAR_BIN deploy "did.$MASTER_ACC" --wasmFile out/daic_did_registry.wasm --initFunction new --initArgs '{}'
+$NEAR_BIN deploy "did.$MASTER_ACC" --wasmFile out/daic_did_registry.wasm --initFunction new --initArgs '{}' 2>&1 || echo "DID deploy: may need re-init"
 
 echo "Deployment complete!"
